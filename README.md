@@ -21,3 +21,16 @@ This script is for monitoring the soil wetness of one or more plants, as well as
     - My personal favorite http://projects.privateeyepi.com/WIFI-Sensor
 - Enclosure for YL-69 circuit board
     - 'add thingiverse link'
+
+
+## Software Requirements
+- Python 3
+- Non-standard Python modules
+    - pip install adafruit-io
+    - pip install Adafruit-GPIO
+    - pip install adafruit-circuitpython-mcp3xxx
+- Custom modules
+    - send_to_adafruit_io_feed
+        - Common module for sending data to AdafruitIO feeds using MQTT
+    - privateEyePiSensor
+        - Common module for reading data from the PrivateEyePi wifi temp & humidity sensor
