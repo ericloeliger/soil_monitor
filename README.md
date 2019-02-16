@@ -30,6 +30,7 @@ This script is for monitoring the soil wetness of one or more plants, as well as
     - pip install Adafruit-GPIO
     - pip install adafruit-circuitpython-mcp3xxx
 - Custom modules
+    - https://github.com/ericloeliger/python-common-modules
     - send_to_adafruit_io_feed
         - Common module for sending data to AdafruitIO feeds using MQTT
     - privateEyePiSensor
