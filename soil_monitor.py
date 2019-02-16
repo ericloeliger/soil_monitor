@@ -5,6 +5,7 @@
 # 2/2/19 - started
 #   V3 is just production-ized V2
 # 2/7/19 - added sending to AdafruitIO
+# 2/16/19 - add upper threshold to detect if sensor is out of soil
 
 # import modules
 import configparser
