@@ -6,6 +6,8 @@
 #   V3 is just production-ized V2
 # 2/7/19 - added sending to AdafruitIO
 # 2/16/19 - add upper threshold to detect if sensor is out of soil
+# 2/18/19 - added soil sensor #1
+    # To Do: make soil sensors more dynamic, lots of hard coding right now
 
 # import modules
 import configparser
@@ -90,8 +92,10 @@ try:
     # setup GPIO
     GPIO.setmode(GPIO.BCM)
     GPIO.setwarnings(False)
-    pin = 17
-    GPIO.setup(pin, GPIO.OUT)
+    soil_sensor_1_gpio = int(config['soil']['SoilSensor1GPIOID'])
+    soil_sensor_2_gpio = int(config['soil']['SoilSensor2GPIOID'])
+    GPIO.setup(soil_sensor_1_gpio, GPIO.OUT)
+    GPIO.setup(soil_sensor_2_gpio, GPIO.OUT)
 
     # Hardware SPI configuration:
     SPI_PORT   = 0
@@ -99,7 +103,9 @@ try:
     mcp = Adafruit_MCP3008.MCP3008(spi=SPI.SpiDev(SPI_PORT, SPI_DEVICE))
 
     # turn sensor on, wait to stabilize
-    GPIO.output(pin,1)
+    GPIO.output(soil_sensor_1_gpio,1)
+    GPIO.output(soil_sensor_2_gpio,1)
+    
     logger.debug("Sensor on")
     sensor_stabilization_time = int(config['soil']['sensor_stabilization_time'])
     logger.debug("Waiting %s seconds for sensor to stabilize" % sensor_stabilization_time)
@@ -108,9 +114,12 @@ try:
     # read sensor value
     raw_sensor_value = mcp.read_adc(0)
     logger.debug('Raw sensor value: %s' % raw_sensor_value)
+    raw_sensor_value2 = mcp.read_adc(2)
+    logger.debug('Raw sensor 2 value: %s' % raw_sensor_value2)
 
     # turn sensor off
-    GPIO.output(pin,0)
+    GPIO.output(soil_sensor_1_gpio,0)
+    GPIO.output(soil_sensor_2_gpio,0)
     logger.debug("Sensor off")
 
     # send value to AdafruitIO
@@ -119,6 +128,9 @@ try:
     feedDictionary['wetnessProbe01'] = {}
     feedDictionary['wetnessProbe01']['feedID'] = config['adafruit.io']['WetnessFeedID01']
     feedDictionary['wetnessProbe01']['value'] = raw_sensor_value
+    feedDictionary['wetnessProbe02'] = {}
+    feedDictionary['wetnessProbe02']['feedID'] = config['adafruit.io']['WetnessFeedID02']
+    feedDictionary['wetnessProbe02']['value'] = raw_sensor_value2
     logger.debug("Adafruit feed dictionary: %s" % feedDictionary)
     send_to_adafruit_io_feed.sendToAdafruitIOFeed(config['adafruit.io']['ClientUser'],config['adafruit.io']['ClientKey'],feedDictionary)
 
@@ -127,24 +139,44 @@ try:
     out_of_soil_threshold = int(config['soil']['OutOfSoilThreshold'])
 
     if raw_sensor_value < threshold:
-        logger.info('Soil is dry - watering needed!')
+        logger.info('Pot #1 soil is dry - watering needed!')
 
         ## Compose email message and send
-        msg = MIMEText('Soil is dry and needs to be watered.  Sensor value: %s' % raw_sensor_value)
+        msg = MIMEText('Pot #1 soil is dry and needs to be watered.  Sensor value: %s' % raw_sensor_value)
         msg['Subject'] = 'Soil Monitoring Alert from %s' % piName
         sendEmail(msg)
 
     elif raw_sensor_value > out_of_soil_threshold:
-        logger.info("Sensor likely out of soil!")
+        logger.info("Pot #1 sensor likely out of soil!")
 
         ## Compose email message and send
-        msg = MIMEText('Sensor likely out of soil, please check.  Sensor value: %s' % raw_sensor_value)
+        msg = MIMEText('Pot #1 sensor likely out of soil, please check.  Sensor value: %s' % raw_sensor_value)
         msg['Subject'] = 'Soil Monitoring Alert from %s' % piName
         sendEmail(msg)
     
     else:
-        logger.info('Soil is wet - no watering needed')
+        logger.info('Pot #1 soil is wet - no watering needed')
 
+
+# eventually combine into for loop
+    if raw_sensor_value2 < threshold:
+        logger.info('Pot #2 soil is dry - watering needed!')
+
+        ## Compose email message and send
+        msg = MIMEText('Pot #2 soil is dry and needs to be watered.  Sensor value: %s' % raw_sensor_value2)
+        msg['Subject'] = 'Soil Monitoring Alert from %s' % piName
+        sendEmail(msg)
+
+    elif raw_sensor_value2 > out_of_soil_threshold:
+        logger.info("Pot #2 sensor likely out of soil!")
+
+        ## Compose email message and send
+        msg = MIMEText('Pot #2 sensor likely out of soil, please check.  Sensor value: %s' % raw_sensor_value2)
+        msg['Subject'] = 'Soil Monitoring Alert from %s' % piName
+        sendEmail(msg)
+    
+    else:
+        logger.info('Pot #2 soil is wet - no watering needed')
 
     # get temperature & humidity readings
     temp_humid_response = privateEyePiSensor.getWifiTempHumidityReadings(sensor_dict)
