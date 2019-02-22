@@ -135,10 +135,10 @@ try:
     send_to_adafruit_io_feed.sendToAdafruitIOFeed(config['adafruit.io']['ClientUser'],config['adafruit.io']['ClientKey'],feedDictionary)
 
     # see if plant needs to be watered
-    threshold = int(config['soil']['threshold'])
+    watering_threshold = int(config['soil']['WateringThreshold'])
     out_of_soil_threshold = int(config['soil']['OutOfSoilThreshold'])
 
-    if raw_sensor_value < threshold:
+    if out_of_soil_threshold > raw_sensor_value > watering_threshold:
         logger.info('Pot #1 soil is dry - watering needed!')
 
         ## Compose email message and send
