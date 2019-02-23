@@ -159,7 +159,7 @@ try:
 
 
 # eventually combine into for loop
-    if raw_sensor_value2 < threshold:
+    if out_of_soil_threshold > raw_sensor_value2 > watering_threshold:
         logger.info('Pot #2 soil is dry - watering needed!')
 
         ## Compose email message and send
